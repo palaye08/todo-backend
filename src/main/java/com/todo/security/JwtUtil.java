@@ -3,13 +3,13 @@ package com.todo.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,13 +25,8 @@ public class JwtUtil {
     private long expiration;
 
     private SecretKey getSigningKey() {
-        // The configured secret is a plain string; pad/hash it into bytes usable by HMAC-SHA.
-        byte[] keyBytes;
-        try {
-            keyBytes = Decoders.BASE64.decode(secret);
-        } catch (IllegalArgumentException e) {
-            keyBytes = secret.getBytes();
-        }
+        // jwt.secret is a plain (non-Base64) string; pad/repeat it into bytes usable by HMAC-SHA.
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         if (keyBytes.length < 32) {
             // Ensure the key is long enough for HS256 by hashing/repeating it.
             byte[] padded = new byte[32];
