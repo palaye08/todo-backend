@@ -39,12 +39,12 @@ public class TaskController {
         return ResponseEntity.ok(ApiResponse.success(tasks));
     }
 
-    // @GetMapping("/{id}")
-    // @Operation(summary = "Obtenir le détail d'une tâche")
-    // public ResponseEntity<ApiResponse<TaskDto>> getTask(@PathVariable Long id) {
-    //     TaskDto task = taskService.getTask(id);
-    //     return ResponseEntity.ok(ApiResponse.success(task));
-    // }
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtenir le détail d'une tâche")
+    public ResponseEntity<ApiResponse<TaskDto>> getTask(@PathVariable Long id) {
+        TaskDto task = taskService.getTask(id);
+        return ResponseEntity.ok(ApiResponse.success(task));
+    }
 
     @PostMapping
     @Operation(summary = "Créer une nouvelle tâche")
