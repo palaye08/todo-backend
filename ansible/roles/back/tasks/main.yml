@@ -1,0 +1,56 @@
+---
+# Rôle "back" : déploiement du conteneur backend Spring Boot.
+#
+# Utilise community.docker.docker_container (idempotent) quand la collection
+# community.docker est disponible sur le contrôleur / la cible
+# (installable via `ansible-galaxy collection install community.docker`).
+# Un fallback en ansible.builtin.command (docker CLI) est fourni en commentaire
+# plus bas si la collection n'est pas installée.
+
+- name: Récupérer la dernière image backend ({{ backend_image }})
+  community.docker.docker_image:
+    name: "{{ backend_image }}"
+    source: pull
+    force_source: true
+  become: true
+
+- name: Arrêter et supprimer un éventuel conteneur backend existant
+  community.docker.docker_container:
+    name: todo-backend
+    state: absent
+    force_kill: true
+  become: true
+  ignore_errors: true
+
+- name: Lancer le conteneur backend
+  community.docker.docker_container:
+    name: todo-backend
+    image: "{{ backend_image }}"
+    state: started
+    restart_policy: always
+    published_ports:
+      - "{{ app_port }}:8080"
+    env:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://{{ db_private_ip }}:{{ mysql_port }}/{{ mysql_database }}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true"
+      SPRING_DATASOURCE_USERNAME: "root"
+      SPRING_DATASOURCE_PASSWORD: "{{ mysql_root_password }}"
+  become: true
+
+# --- Fallback sans collection community.docker (docker CLI brut) ---
+# - name: Pull image backend (fallback CLI)
+#   ansible.builtin.command: docker pull {{ backend_image }}
+#   become: true
+#
+# - name: Stop + rm ancien conteneur (fallback CLI, idempotent au 1er run)
+#   ansible.builtin.shell: docker stop todo-backend && docker rm todo-backend
+#   become: true
+#   ignore_errors: true
+#
+# - name: Lancer le conteneur backend (fallback CLI)
+#   ansible.builtin.command: >
+#     docker run -d --name todo-backend -p {{ app_port }}:8080
+#     -e SPRING_DATASOURCE_URL=jdbc:mysql://{{ db_private_ip }}:3306/{{ mysql_database }}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+#     -e SPRING_DATASOURCE_USERNAME=root
+#     -e SPRING_DATASOURCE_PASSWORD={{ mysql_root_password }}
+#     --restart always {{ backend_image }}
+#   become: true

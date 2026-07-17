@@ -1,0 +1,20 @@
+---
+# Variables non sensibles, partagées par tous les hosts.
+
+mysql_database: todo_db
+front_domain: m1.local
+
+backend_image: "palaye769/todo-backend:latest"
+frontend_image: "palaye769/todo-frontend:latest"
+
+app_port: 8080
+frontend_port: 4200
+mysql_port: 3306
+
+# IP privée de l'instance DB, dérivée dynamiquement de l'inventaire.
+# Utilisable dans les rôles back/front sous la forme : {{ db_private_ip }}
+db_private_ip: "{{ groups['db'][0] }}"
+
+# IP privée de l'instance Back, dérivée dynamiquement de l'inventaire.
+# Utilisable dans le rôle front (reverse proxy Nginx) : {{ back_private_ip }}
+back_private_ip: "{{ groups['back'][0] }}"

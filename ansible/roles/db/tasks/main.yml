@@ -1,0 +1,52 @@
+---
+# Rôle "db" : déploiement du conteneur MySQL.
+# Utilise community.docker.docker_container (idempotent).
+
+- name: Récupérer l'image mysql:8.0
+  community.docker.docker_image:
+    name: "mysql:8.0"
+    source: pull
+    force_source: true
+  become: true
+
+- name: Arrêter et supprimer un éventuel conteneur MySQL existant
+  community.docker.docker_container:
+    name: todo-mysql
+    state: absent
+    force_kill: true
+  become: true
+  ignore_errors: true
+
+- name: Lancer le conteneur MySQL
+  community.docker.docker_container:
+    name: todo-mysql
+    image: "mysql:8.0"
+    state: started
+    restart_policy: always
+    published_ports:
+      - "{{ mysql_port }}:3306"
+    env:
+      MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
+      MYSQL_DATABASE: "{{ mysql_database }}"
+    volumes:
+      - "mysql_data:/var/lib/mysql"
+  become: true
+
+# --- Fallback sans collection community.docker (docker CLI brut) ---
+# - name: Pull image mysql (fallback CLI)
+#   ansible.builtin.command: docker pull mysql:8.0
+#   become: true
+#
+# - name: Stop + rm ancien conteneur (fallback CLI, idempotent au 1er run)
+#   ansible.builtin.shell: docker stop todo-mysql && docker rm todo-mysql
+#   become: true
+#   ignore_errors: true
+#
+# - name: Lancer le conteneur MySQL (fallback CLI)
+#   ansible.builtin.command: >
+#     docker run -d --name todo-mysql -p {{ mysql_port }}:3306
+#     -e MYSQL_ROOT_PASSWORD={{ mysql_root_password }}
+#     -e MYSQL_DATABASE={{ mysql_database }}
+#     -v mysql_data:/var/lib/mysql
+#     --restart always mysql:8.0
+#   become: true

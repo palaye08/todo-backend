@@ -1,0 +1,23 @@
+---
+# Playbook principal - déploiement de l'infrastructure Todo App
+# (Front = Nginx + Certbot + frontend, Back = API Spring Boot, DB = MySQL)
+
+- name: Configuration commune à tous les hosts (update + Docker)
+  hosts: all
+  roles:
+    - common
+
+- name: Déploiement du Front (Nginx + Certbot + conteneur frontend)
+  hosts: front
+  roles:
+    - front
+
+- name: Déploiement du Back (conteneur backend Spring Boot)
+  hosts: back
+  roles:
+    - back
+
+- name: Déploiement de la DB (conteneur MySQL)
+  hosts: db
+  roles:
+    - db

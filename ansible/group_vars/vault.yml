@@ -1,0 +1,17 @@
+---
+# ATTENTION : ce fichier contient des variables sensibles et est fourni EN CLAIR
+# uniquement à titre pédagogique pour ce TP.
+#
+# Avant tout usage réel / avant de committer sur un repo partagé, il DOIT être
+# chiffré avec Ansible Vault :
+#
+#   ansible-vault encrypt group_vars/vault.yml
+#
+# Pour l'éditer ensuite :
+#   ansible-vault edit group_vars/vault.yml
+#
+# Et pour lancer le playbook avec un vault chiffré :
+#   ansible-playbook site.yml --ask-vault-pass
+#   (ou --vault-password-file=<chemin>)
+
+mysql_root_password: "TodoDB2024!Secure"

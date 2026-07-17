@@ -1,0 +1,14 @@
+# Copier ce fichier en terraform.tfvars et adapter les valeurs.
+# NE JAMAIS committer terraform.tfvars (déjà exclu par .gitignore) :
+# il contient potentiellement des secrets réels (mot de passe MySQL, IP admin...).
+
+aws_region           = "eu-west-3"
+admin_ip             = "TON_IP/32"
+key_pair_name        = "todo-key"
+public_key_path      = "~/.ssh/id_rsa.pub"
+mysql_root_password  = "TodoDB2024!Secure"
+mysql_database        = "todo_db"
+backend_image        = "palaye769/todo-backend:latest"
+frontend_image       = "palaye769/todo-frontend:latest"
+app_port             = 8080
+front_domain         = "m1.local"

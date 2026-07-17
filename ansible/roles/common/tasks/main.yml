@@ -1,0 +1,30 @@
+---
+# Rôle "common" : appliqué à tous les hosts (front, back, db).
+# Met à jour le système et installe/démarre Docker.
+
+- name: Mettre à jour tous les paquets (dnf update)
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    update_cache: true
+  become: true
+
+- name: Installer Docker
+  ansible.builtin.dnf:
+    name: docker
+    state: present
+  become: true
+
+- name: Démarrer et activer le service Docker
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+  become: true
+
+- name: Ajouter ec2-user au groupe docker
+  ansible.builtin.user:
+    name: ec2-user
+    groups: docker
+    append: true
+  become: true

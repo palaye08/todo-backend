@@ -1,0 +1,58 @@
+---
+# Rôle "front" : Nginx (reverse proxy) + Certbot + conteneur frontend.
+
+- name: Installer Nginx
+  ansible.builtin.dnf:
+    name: nginx
+    state: present
+  become: true
+
+- name: Déployer la configuration Nginx (reverse proxy todo)
+  ansible.builtin.template:
+    src: todo.conf.j2
+    dest: /etc/nginx/conf.d/todo.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: reload nginx
+
+- name: Démarrer et activer Nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: true
+  become: true
+
+- name: Installer Certbot (+ plugin nginx) pour HTTPS
+  ansible.builtin.dnf:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present
+  become: true
+
+- name: Récupérer la dernière image frontend ({{ frontend_image }})
+  community.docker.docker_image:
+    name: "{{ frontend_image }}"
+    source: pull
+    force_source: true
+  become: true
+
+- name: Arrêter et supprimer un éventuel conteneur frontend existant
+  community.docker.docker_container:
+    name: todo-frontend
+    state: absent
+    force_kill: true
+  become: true
+  ignore_errors: true
+
+- name: Lancer le conteneur frontend
+  community.docker.docker_container:
+    name: todo-frontend
+    image: "{{ frontend_image }}"
+    state: started
+    restart_policy: always
+    published_ports:
+      - "{{ frontend_port }}:4200"
+  become: true

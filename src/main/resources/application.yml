@@ -1,0 +1,8 @@
+# Configuration complémentaire (non contradictoire avec application.properties,
+# qui reste le fichier de configuration principal : datasource, JPA, JWT, Swagger).
+# Ce fichier ne porte que des réglages annexes (logging).
+logging:
+  level:
+    root: INFO
+    com.todo: DEBUG
+    org.hibernate.SQL: DEBUG
