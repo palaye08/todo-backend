@@ -15,9 +15,10 @@
 # Job 1 (build-and-push): builds the Docker image and pushes it to
 #   palaye769/todo-backend on Docker Hub, tagged "latest" and with the
 #   commit SHA.
-# Job 2 (deploy): SSHes into the Front instance (public, bastion), then
-#   cascades via ProxyJump into the private Back instance to pull the new
-#   image and restart the todo-backend container.
+# Job 2 (deploy): SSHes into the Front instance (public, bastion), then runs
+#   a script that connects directly from Front to the private Back instance
+#   (Front is already inside the VPC, so no extra proxy hop is needed there)
+#   to pull the new image and restart the todo-backend container.
 
 name: CI/CD - todo-backend
 
@@ -66,9 +67,8 @@ jobs:
           script: |
             echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/key.pem
             chmod 600 /tmp/key.pem
-            ssh -o StrictHostKeyChecking=no \
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
                 -i /tmp/key.pem \
-                -J ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
                 ${{ secrets.EC2_USER }}@${{ secrets.BACK_PRIVATE_IP }} \
                 "docker pull palaye769/todo-backend:latest && \
                  docker stop todo-backend 2>/dev/null || true && \
