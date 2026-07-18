@@ -82,13 +82,53 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
+# --- NAT Gateway (permet au sous-réseau privé de sortir vers Internet :
+#     dnf update, docker pull, sans exposer Back/DB publiquement) ---
+resource "aws_eip" "nat" {
+  domain = "vpc"
+
+  tags = {
+    Name = "${var.project_name}-nat-eip"
+  }
+}
+
+resource "aws_nat_gateway" "main" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public.id
+
+  tags = {
+    Name = "${var.project_name}-nat"
+  }
+
+  depends_on = [aws_internet_gateway.main]
+}
+
+# --- Route table privée -> NAT Gateway ---
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.main.id
+  }
+
+  tags = {
+    Name = "${var.project_name}-private-rt"
+  }
+}
+
+resource "aws_route_table_association" "private" {
+  subnet_id      = aws_subnet.private.id
+  route_table_id = aws_route_table.private.id
+}
+
 # =========================================================
 # Security Groups
 # =========================================================
 
 resource "aws_security_group" "front_sg" {
   name        = "${var.project_name}-front-sg"
-  description = "SG pour l'instance Front (HTTP/HTTPS public + SSH admin)"
+  description = "SG instance Front (HTTP/HTTPS public + SSH admin)"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -129,7 +169,7 @@ resource "aws_security_group" "front_sg" {
 
 resource "aws_security_group" "back_sg" {
   name        = "${var.project_name}-back-sg"
-  description = "SG pour l'instance Back (API accessible uniquement depuis Front)"
+  description = "SG instance Back (API accessible uniquement depuis Front)"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -141,11 +181,11 @@ resource "aws_security_group" "back_sg" {
   }
 
   ingress {
-    description = "SSH admin"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.admin_ip]
+    description     = "SSH depuis Front (bastion)"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.front_sg.id]
   }
 
   egress {
@@ -162,7 +202,7 @@ resource "aws_security_group" "back_sg" {
 
 resource "aws_security_group" "db_sg" {
   name        = "${var.project_name}-db-sg"
-  description = "SG pour l'instance DB (MySQL accessible uniquement depuis Back)"
+  description = "SG instance DB (MySQL accessible uniquement depuis Back)"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -174,11 +214,11 @@ resource "aws_security_group" "db_sg" {
   }
 
   ingress {
-    description = "SSH admin"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.admin_ip]
+    description     = "SSH depuis Front (bastion)"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.front_sg.id]
   }
 
   egress {

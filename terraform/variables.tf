@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "Région AWS où déployer l'infrastructure"
   type        = string
-  default     = "eu-west-3"
+  default     = "us-west-1"
 }
 
 variable "vpc_cidr" {
@@ -25,13 +25,13 @@ variable "private_subnet_cidr" {
 variable "availability_zone" {
   description = "Zone de disponibilité utilisée pour les sous-réseaux"
   type        = string
-  default     = "eu-west-3a"
+  default     = "us-west-1a"
 }
 
 variable "instance_type" {
   description = "Type d'instance EC2 utilisé pour les 3 machines"
   type        = string
-  default     = "t2.micro"
+  default     = "t3.micro"
 }
 
 variable "admin_ip" {

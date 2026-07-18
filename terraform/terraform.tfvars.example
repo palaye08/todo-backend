@@ -2,7 +2,7 @@
 # NE JAMAIS committer terraform.tfvars (déjà exclu par .gitignore) :
 # il contient potentiellement des secrets réels (mot de passe MySQL, IP admin...).
 
-aws_region           = "eu-west-3"
+aws_region           = "us-west-1"
 admin_ip             = "TON_IP/32"
 key_pair_name        = "todo-key"
 public_key_path      = "~/.ssh/id_rsa.pub"
